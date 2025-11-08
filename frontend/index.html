@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rube Web Interface - AI Command Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="50" height="50" viewBox="0 0 100 100">
+                    <path d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z" fill="none" stroke="#6366f1" stroke-width="4"/>
+                    <circle cx="50" cy="50" r="15" fill="#6366f1"/>
+                </svg>
+                <h1>Rube Web Interface</h1>
+            </div>
+            <div class="status" id="status">
+                <span class="status-dot"></span>
+                <span>Ready</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Command Input Section -->
+            <div class="command-section">
+                <h2>🤖 AI Command Center</h2>
+                <p class="subtitle">Type any command and let Rube execute it for you</p>
+
+                <div class="input-group">
+                    <textarea 
+                        id="commandInput" 
+                        placeholder="Example: Send a slack message to #general saying 'Hello from Rube!'"
+                        rows="4"
+                    ></textarea>
+
+                    <button id="executeBtn" class="btn-primary">
+                        <span class="btn-icon">⚡</span>
+                        Execute Command
+                    </button>
+                </div>
+
+                <!-- Quick Commands -->
+                <div class="quick-commands">
+                    <h3>Quick Commands:</h3>
+                    <div class="command-chips">
+                        <button class="chip" data-command="Get my latest emails from Gmail">📧 Latest Emails</button>
+                        <button class="chip" data-command="Search GitHub for trending repositories">🔥 GitHub Trending</button>
+                        <button class="chip" data-command="Get current weather for New York">🌤️ Weather</button>
+                        <button class="chip" data-command="Create a Google Doc with today's summary">📝 Create Doc</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h3>📊 Results</h3>
+                <div class="result-card" id="resultCard">
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Executing command...</p>
+                    </div>
+                    <pre id="resultContent"></pre>
+                </div>
+            </div>
+
+            <!-- Examples Section -->
+            <div class="examples-section">
+                <h3>💡 Example Commands</h3>
+                <div class="example-grid">
+                    <div class="example-card">
+                        <h4>📧 Email Automation</h4>
+                        <p>"Send an email to john@example.com with subject 'Meeting' and body 'Let's meet tomorrow'"</p>
+                    </div>
+                    <div class="example-card">
+                        <h4>💬 Slack Integration</h4>
+                        <p>"Post a message to #general channel: Team standup in 10 minutes"</p>
+                    </div>
+                    <div class="example-card">
+                        <h4>📊 Data Analysis</h4>
+                        <p>"Fetch my Google Analytics data for last week and create a summary"</p>
+                    </div>
+                    <div class="example-card">
+                        <h4>🔍 Web Search</h4>
+                        <p>"Search the web for latest AI news and summarize top 3 articles"</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <strong>Rube</strong> - Your AI Automation Partner</p>
+            <p class="footer-links">
+                <a href="https://rube.app" target="_blank">Documentation</a> •
+                <a href="https://github.com/rumbleveer-spec" target="_blank">GitHub</a> •
+                <a href="mailto:support@rube.app">Support</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
