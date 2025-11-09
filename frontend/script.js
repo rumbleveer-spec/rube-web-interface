@@ -1,5 +1,13 @@
 // Configuration
 const API_BASE_URL = window.location.origin;
+let SESSION_ID = localStorage.getItem('rube_session_id') || generateSessionId();
+
+// Generate unique session ID
+function generateSessionId() {
+    const id = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('rube_session_id', id);
+    return id;
+}
 
 // DOM Elements
 const commandInput = document.getElementById('commandInput');
@@ -10,6 +18,9 @@ const loading = document.getElementById('loading');
 const resultContent = document.getElementById('resultContent');
 const status = document.getElementById('status');
 const quickCommandChips = document.querySelectorAll('.chip');
+
+// History panel (we'll add this to HTML)
+let historyPanel = null;
 
 // Quick command chips click handler
 quickCommandChips.forEach(chip => {
@@ -54,13 +65,16 @@ async function executeCommand(command) {
 
         console.log('🚀 Sending command:', command);
 
-        // Call backend API
+        // Call backend API with session ID
         const response = await fetch(`${API_BASE_URL}/api/execute`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ command })
+            body: JSON.stringify({ 
+                command,
+                session_id: SESSION_ID
+            })
         });
 
         const data = await response.json();
@@ -72,8 +86,13 @@ async function executeCommand(command) {
         resultContent.style.display = 'block';
 
         if (data.success) {
+            const executionTime = data.execution_time || 0;
             resultContent.textContent = JSON.stringify(data.data, null, 2);
-            updateStatus('success', 'Success!');
+            resultContent.style.color = '';
+            updateStatus('success', `Success! (${executionTime}ms)`);
+
+            // Refresh history
+            loadHistory();
 
             // Auto-hide success status after 3 seconds
             setTimeout(() => updateStatus('ready', 'Ready'), 3000);
@@ -94,6 +113,88 @@ async function executeCommand(command) {
         // Reset button
         executeBtn.disabled = false;
         executeBtn.innerHTML = '<span class="btn-icon">⚡</span> Execute Command';
+    }
+}
+
+// Load command history
+async function loadHistory() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/history?session_id=${SESSION_ID}`);
+        const data = await response.json();
+
+        if (data.success && data.history.length > 0) {
+            displayHistory(data.history);
+        }
+    } catch (error) {
+        console.error('Error loading history:', error);
+    }
+}
+
+// Display history
+function displayHistory(history) {
+    // Create history panel if doesn't exist
+    if (!historyPanel) {
+        historyPanel = document.createElement('div');
+        historyPanel.className = 'history-panel';
+        historyPanel.innerHTML = `
+            <h3>📜 Command History</h3>
+            <div class="history-list" id="historyList"></div>
+            <button class="btn-secondary" onclick="clearHistory()">Clear History</button>
+        `;
+        document.querySelector('.main-content').appendChild(historyPanel);
+    }
+
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = history.slice(0, 10).map((item, index) => `
+        <div class="history-item ${item.success ? 'success' : 'failed'}" onclick="loadCommand('${item.command.replace(/'/g, "\\'")}')">
+            <div class="history-command">${item.command}</div>
+            <div class="history-time">${new Date(item.executed_at).toLocaleString()}</div>
+            <div class="history-status">${item.success ? '✅' : '❌'} ${item.execution_time}ms</div>
+        </div>
+    `).join('');
+}
+
+// Load command from history
+function loadCommand(command) {
+    commandInput.value = command;
+    commandInput.focus();
+}
+
+// Clear history
+async function clearHistory() {
+    if (!confirm('Are you sure you want to clear all history?')) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/history?session_id=${SESSION_ID}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            if (historyPanel) {
+                historyPanel.remove();
+                historyPanel = null;
+            }
+            alert('History cleared!');
+        }
+    } catch (error) {
+        console.error('Error clearing history:', error);
+        alert('Failed to clear history');
+    }
+}
+
+// Load analytics
+async function loadAnalytics() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/analytics?session_id=${SESSION_ID}`);
+        const data = await response.json();
+
+        if (data.success) {
+            console.log('📊 Analytics:', data.analytics);
+            // You can display this in UI
+        }
+    } catch (error) {
+        console.error('Error loading analytics:', error);
     }
 }
 
@@ -129,6 +230,10 @@ async function checkHealth() {
         if (data.status === 'OK') {
             console.log('✅ Backend is healthy');
             updateStatus('ready', 'Ready');
+
+            // Load history
+            loadHistory();
+            loadAnalytics();
         }
     } catch (error) {
         console.error('❌ Backend health check failed:', error);
@@ -139,5 +244,6 @@ async function checkHealth() {
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Rube Web Interface loaded');
+    console.log('🔑 Session ID:', SESSION_ID);
     checkHealth();
 });
